@@ -6,12 +6,13 @@ Basic declarative routing for React.
 
 - Match routes by path (`<Route>`)
 - Match one route exclusively from a set of routes (`<Routes>`)
-- Use path parameters and wildcards (`useParam()`, `useRouteMatch()`)
 - Integrate with any clickable element (`useNavigate()`, `useNavigateBack()`)
-- Integrate with the browser history API (path or hash)
+- Support browser path or hash operation
 - Support memory-only operation
-- Support navigation blocking (`<ConfirmNavigation>`, `useConfirmNavigation()`)
+- Support path parameters and wildcards (`useParam()`, `useRouteMatch()`)
 - Support accessing search/query parameters (`useSearchParams()`, `useLocation()`)
+- Support redirection (`<Redirect>`)
+- Support navigation blocking (`<ConfirmNavigation>`, `useConfirmNavigation()`)
 
 **It does not:**
 
