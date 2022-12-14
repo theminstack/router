@@ -10,6 +10,7 @@ Basic declarative routing for React.
 - Integrate with any clickable element (`useNavigate()`, `useNavigateBack()`)
 - Integrate with the browser history API (path or hash)
 - Support memory-only operation
+- Support redirection (`<Redirect>`)
 - Support navigation blocking (`<ConfirmNavigation>`, `useConfirmNavigation()`)
 - Support accessing search/query parameters (`useSearchParams()`, `useLocation()`)
 
