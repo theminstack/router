@@ -3,7 +3,7 @@
   "description": "Basic routing for React.",
   "author": "Chris Ackerman <chris@topher.land>",
   "license": "ISC",
-  "version": "1.0.0-next.2",
+  "version": "1.0.0-next.3",
   "files": [
     "lib/**"
   ],
@@ -42,18 +42,19 @@
     "eslint-config-rational": "^2.0.7",
     "identity-obj-proxy": "^3.0.0",
     "jsdom": "^20.0.3",
+    "normalize.css": "^8.0.1",
     "parallel-rc": "^1.0.12",
     "prettier": "^2.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-components": "^5.3.6",
     "typescript": "^4.9.4",
     "vite": "^4.0.0",
     "vite-plugin-full-reload": "^1.0.5",
     "vitest": "^0.25.7"
   },
-  "dependencies": {
-    "normalize.css": "^8.0.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "styled-components": "^5.3.6"
+  "peerDependencies": {
+    "react": ">=16.14.0"
   },
   "repository": {
     "type": "git",
