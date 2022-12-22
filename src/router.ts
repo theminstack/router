@@ -71,22 +71,21 @@ const createRouter = ({ window, encodeUrl, decodeUrl }: RouterOptions): Router =
   };
 
   const self: Router = {
-    go: async (deltaUrlOrNavigation = 0) => {
+    go: (deltaUrlOrNavigation = 0) => {
       const { replace = false, state = null, to = window.location.href } = getNavigation(deltaUrlOrNavigation);
 
       if (typeof to === 'number') {
         window.history.go(to);
       } else {
         const url = encodeUrl(new URL(typeof to === 'string' ? to : to.href, window.location.href));
-
-        if (url.href === window.location.href && JSON.stringify(state) === JSON.stringify(window.history.state)) {
-          return;
-        }
-
         const newState: RouterState = {
           isPushed: replace ? (isRouterState(window.history.state) ? window.history.state.isPushed : false) : true,
           state,
         };
+
+        if (url.href === window.location.href && JSON.stringify(newState) === JSON.stringify(window.history.state)) {
+          return;
+        }
 
         try {
           window.history[replace ? 'replaceState' : 'pushState'](newState, '', url);

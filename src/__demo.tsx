@@ -4,7 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createGlobalStyle } from 'styled-components';
 
-import { Route, Routes, useNavigate, useRouteMatch, useRouter } from './index.js';
+import { Redirect, Route, Routes, useNavigate, useRouteMatch, useRouter } from './index.js';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -110,6 +110,11 @@ const Demo = () => {
             Push: /abc (href)
           </a>
         </li>
+        <li>
+          <a onClick={href} href="/redirect">
+            Redirect
+          </a>
+        </li>
       </ul>
       <Routes>
         <Route path="/a">
@@ -129,6 +134,9 @@ const Demo = () => {
         </Route>
         <Route path="/f/*">
           <SubRoutes />
+        </Route>
+        <Route path="/redirect">
+          <Redirect url={'/'} replace />
         </Route>
         <Route>
           <Display />
