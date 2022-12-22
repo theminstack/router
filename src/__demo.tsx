@@ -138,7 +138,7 @@ const Demo = () => {
           <SubRoutes />
         </Route>
         <Route path="/redirect">
-          <Redirect url={'/'} replace />
+          <Redirect url={'/'} />
         </Route>
         <Route>
           <Display />

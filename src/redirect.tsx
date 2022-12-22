@@ -5,16 +5,16 @@ import { type UrlLike } from './router.js';
 import { useRouter } from './use-router.js';
 
 type RedirectProps = {
-  readonly replace?: boolean;
+  readonly push?: boolean;
   readonly state?: {} | null;
   readonly url?: UrlLike;
 };
 
 const Redirect = (props: RedirectProps): null => {
-  const { url, state, replace } = useJsonMemo(props);
+  const { url, state, push = false } = useJsonMemo(props);
   const router = useRouter();
 
-  useEffect(() => router.go({ replace, state, to: url }), [router, url, state, replace]);
+  useEffect(() => router.go({ replace: !push, state, to: url }), [router, url, state, push]);
 
   return null;
 };

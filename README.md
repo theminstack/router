@@ -2,32 +2,43 @@
 
 Basic declarative routing for React.
 
-**It does:**
+The [MinStack](https://minstack.rocks) Philosophy:
 
-- Match routes by path patterns
-- Match one route exclusively from a set of routes
-- Provide `onClick` navigation handlers
-- Support path parameters
-- Support partial path (prefix with trailing wildcard) matching
-- Support redirection
-- Support path, hash, or memory-only (SSR/testing) navigation
+- **Simple:** Minimal and opinionated APIs and feature sets.
+- **Small:** Zero dependencies and smaller bundles than most alternatives.
+- **Fast:** Optimization through simplicity.
+- **Typed:** Written in Typescript. Designed for Typescript.
 
-**It does not:**
+---
 
-- Match routes by search parameters
-- Provide lazy loading
-- Provide error boundaries
-- Provide navigation confirmation/prompting/blocking
-- Provide a `<Link>` component
-- Support path parameter regular expressions
-- Support wildcards anywhere except at the end of a route
+- [Match Routes By Path](#match-routes-by-path)
+  - [Exclusive Routes](#exclusive-routes)
+  - [Path Parameters](#path-parameters)
+  - [Route Match Data](#route-match-data)
+- [Navigate On Click](#navigate-on-click)
+- [Redirect On Mount](#redirect-on-mount)
+- [Use Alternate Routers](#use-alternate-routers)
+  - [Browser Path](#browser-path)
+  - [Browser Hash](#browser-hash)
+  - [Memory Only](#memory-only)
 
-## Routing
 
-## Navigation Click Handlers
+## Match Routes By Path
 
-## Path Parameters
+### Exclusive Routes
 
-## Redirection
+### Path Parameters
 
-## Path, Hash, and Memory-only Navigation
+### Route Match Data
+
+## Navigate On Click
+
+## Redirect On Mount
+
+## Use Alternate Routers
+
+### Browser Path
+
+### Browser Hash
+
+### Memory Only
