@@ -6,12 +6,25 @@
     "email": "chris@topher.land"
   },
   "license": "ISC",
-  "version": "1.0.0-next.0",
+  "version": "1.0.0-next.1",
   "files": [
-    "dist/**"
+    "lib/**"
   ],
+  "directories": {
+    "lib": "lib"
+  },
   "type": "module",
-  "main": "package.json",
+  "types": "lib/types/index.d.ts",
+  "main": "lib/cjs/index.js",
+  "module": "lib/esm/index.js",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "require": "./lib/cjs/index.js",
+      "default": "./lib/esm/index.js"
+    }
+  },
+  "sideEffects": false,
   "scripts": {
     "test": "rc npm-test -o",
     "start": "vite --host",
