@@ -1,130 +1,160 @@
-import { type Location, createLocation, getLocationPathUri } from './location.js';
-import { warn } from './warn.js';
+import { type LiteWindow, createLiteWindow } from './internal/window.js';
 
-type Action = 'back' | 'pushState' | 'replaceState';
-
-type PopOptions = {
-  readonly count?: number;
-  readonly force?: boolean;
+type RouterState = { readonly isPushed: boolean; readonly state: {} | null };
+type RouterOptions = {
+  readonly decodeUrl: (url: URL) => URL;
+  readonly encodeUrl: (url: URL) => URL;
+  readonly window: LiteWindow;
 };
-
-type PushOptions = Partial<Location> & {
-  readonly force?: boolean;
+type UrlLike = string | { readonly href: string };
+type RouterNavigation = {
   readonly replace?: boolean;
+  readonly state?: {} | null;
+  readonly to?: UrlLike | number;
 };
-
+type RouterHref = `${'http' | 'https'}://${string}`;
+type RouterLocation = {
+  readonly href: RouterHref;
+  readonly pathname: string;
+  readonly state: {} | null;
+};
 type Router = {
-  readonly length: number;
-  readonly location: Location;
-  readonly onBeforeChange: (
-    subscriber: (
-      location: Location,
-      action: Action,
-    ) => Promise<boolean | undefined | void> | boolean | undefined | void,
-  ) => () => void;
-  readonly onChange: (subscriber: (location: Location, action: Action) => void) => () => void;
-  readonly pop: (options?: PopOptions) => Promise<boolean>;
-  readonly push: (options: PushOptions) => Promise<boolean>;
+  readonly go: {
+    (urlLike?: UrlLike): void;
+    (delta?: number): void;
+    (navigation?: RouterNavigation): void;
+    (target?: RouterNavigation | UrlLike | number): void;
+  };
+  readonly isPushed: boolean;
+  readonly location: RouterLocation;
+  readonly subscribe: (subscriber: () => void) => () => void;
 };
 
-const createRouter = (locationOrUri?: Partial<Location> | string): Router => {
-  let current = createLocation(locationOrUri);
+const isRouterState = (value: RouterState | {} | null): value is RouterState => {
+  return (
+    value != null &&
+    typeof value === 'object' &&
+    'state' in value &&
+    'isPushed' in value &&
+    typeof value.isPushed === 'boolean'
+  );
+};
 
-  const history: Location[] = [];
-  const onBeforeChange = new Set<
-    (location: Location, action: Action) => Promise<boolean | undefined | void> | boolean | undefined | void
-  >();
-  const onChange = new Set<(location: Location, action: Action) => void>();
+const getNavigation = (target?: RouterNavigation | UrlLike | number): RouterNavigation => {
+  return typeof target === 'object' && target != null && !('href' in target)
+    ? {
+        ...(target.replace == null ? {} : { replace: target.replace }),
+        ...(target.state == null ? {} : { state: target.state }),
+        ...(target.to == null ? {} : { to: target.to }),
+      }
+    : target == null
+    ? {}
+    : { to: target };
+};
 
-  const beforeNext = async (location: Location, action: Action): Promise<boolean> => {
-    const results = await Promise.allSettled(Array.from(onBeforeChange).map((handler) => handler(location, action)));
-    return results.every((result) => result.status === 'fulfilled' && result.value !== false);
+const createRouter = ({ window, encodeUrl, decodeUrl }: RouterOptions): Router => {
+  let current: RouterLocation;
+
+  const subscribers = new Set<() => void>();
+
+  const update = () => {
+    const url = decodeUrl(new URL(window.location.href));
+    const state = isRouterState(window.history.state) ? window.history.state.state : null;
+
+    current = {
+      href: url.href as RouterHref,
+      pathname: url.pathname,
+      state,
+    };
+
+    subscribers.forEach((subscriber) => subscriber());
   };
 
-  const next = (location: Location, action: Action) => {
-    onChange.forEach((handler) => handler(location, action));
-  };
+  const self: Router = {
+    go: async (deltaUrlOrNavigation = 0) => {
+      const { replace = false, state = null, to = window.location.href } = getNavigation(deltaUrlOrNavigation);
 
-  const instance: Router = {
-    get length() {
-      return history.length;
+      if (typeof to === 'number') {
+        window.history.go(to);
+      } else {
+        const url = encodeUrl(new URL(typeof to === 'string' ? to : to.href, window.location.href));
+
+        if (url.href === window.location.href && JSON.stringify(state) === JSON.stringify(window.history.state)) {
+          return;
+        }
+
+        const newState: RouterState = {
+          isPushed: replace ? (isRouterState(window.history.state) ? window.history.state.isPushed : false) : true,
+          state,
+        };
+
+        try {
+          window.history[replace ? 'replaceState' : 'pushState'](newState, '', url);
+          update();
+        } catch (_error) {
+          // An error may be thrown when...
+          // - URLs have an origin that doesn't match the current page.
+          // - Browser specific (eg. iOS Safari) state change limits are exceeded.
+          // - States are too large or not serializable.
+          console.warn(`History state change failed. Falling back to location change (state will be lost).`);
+          window.location[replace ? 'replace' : 'assign'](url);
+        }
+      }
+    },
+    get isPushed() {
+      return isRouterState(window.history.state) ? window.history.state.isPushed : false;
     },
     get location() {
       return current;
     },
-    onBeforeChange: (handler) => {
+    subscribe: (handler) => {
       handler = handler.bind(null);
-      onBeforeChange.add(handler);
-      return () => void onBeforeChange.delete(handler);
-    },
-    onChange: (handler) => {
-      handler = handler.bind(null);
-      onChange.add(handler);
-      return () => void onChange.delete(handler);
-    },
-    pop: async ({ count = 1, force = false }: PopOptions = {}) => {
-      for (let index = Math.abs(count); index > 0; index--) {
-        if (history.length === 0 || (!(await beforeNext(history.at(-1) as Location, 'back')) && !force)) {
-          return false;
+      subscribers.add(handler);
+      window.addEventListener('popstate', update, { capture: true });
+
+      return () => {
+        subscribers.delete(handler);
+
+        if (subscribers.size === 0) {
+          window.removeEventListener('popstate', update, { capture: true });
         }
-
-        current = history.pop() as Location;
-        next(current, 'back');
-      }
-
-      return true;
-    },
-    push: async ({ replace = false, force = false, ...update }) => {
-      const location = createLocation(update, current);
-      const action = replace ? 'replaceState' : 'pushState';
-
-      if (!(await beforeNext(location, action)) && !force) {
-        return false;
-      }
-
-      if (!replace) {
-        history.push(current);
-      }
-
-      current = location;
-      next(current, action);
-      return true;
+      };
     },
   };
 
-  return instance;
+  update();
+
+  return self;
 };
 
-type State = {
-  readonly $isMinStackRouter: boolean;
-  readonly data: any;
+const createPathRouter = (): Router => {
+  return createRouter({ decodeUrl: (url) => url, encodeUrl: (url) => url, window });
 };
 
-const isState = (value: unknown): value is State => {
-  return value != null && typeof value === 'object' && '$isMinStackRouter' in value;
-};
-
-const createBrowserRouter = (getUri: (location: Location) => string = getLocationPathUri): Router => {
-  const router = createRouter(window.location);
-
-  router.onBeforeChange(async (_location, action) => {
-    if (action === 'back' && !isState(window.history.state)) {
-      warn('Refusing to pop a history entry that was not pushed by the MinStack Router');
-      return false;
-    }
-
-    return true;
+const createHashRouter = (): Router => {
+  return createRouter({
+    decodeUrl: (url) => new URL(url.hash.slice(1), window.location.href),
+    encodeUrl: (url) => new URL(`#${url.pathname}${url.search}${url.hash}`, window.location.href),
+    window,
   });
-
-  router.onChange((location, action) => {
-    if (action === 'back') {
-      window.history.back();
-    } else {
-      window.history[action]({ $isMinStackRouter: true, data: location.data }, '', getUri(location));
-    }
-  });
-
-  return router;
 };
 
-export { type Router, createBrowserRouter, createRouter };
+const createMemoryRouter = (urlLike: UrlLike = '/', state: {} | null = null): Router => {
+  return createRouter({
+    decodeUrl: (url) => url,
+    encodeUrl: (url) => url,
+    window: createLiteWindow(typeof urlLike === 'string' ? urlLike : urlLike.href, state),
+  });
+};
+
+export {
+  type Router,
+  type RouterHref,
+  type RouterLocation,
+  type RouterNavigation,
+  type UrlLike,
+  createHashRouter,
+  createMemoryRouter,
+  createPathRouter,
+  getNavigation,
+};
