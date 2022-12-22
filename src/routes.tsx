@@ -10,7 +10,7 @@ type RoutesProps = {
 };
 
 const Routes = ({ children }: RoutesProps = {}): JSX.Element | null => {
-  const { pathname, state } = useLocation();
+  const { pathname, state, search, hash } = useLocation();
   const routes = Children.toArray(children).filter(isRoute);
   const paths = routes.flatMap<[path: string, index: number]>((child, i) => {
     return isRoute(child)
@@ -26,12 +26,12 @@ const Routes = ({ children }: RoutesProps = {}): JSX.Element | null => {
       const [match, index] = matcher(pathname);
 
       if (match) {
-        return [{ ...match, state }, index];
+        return [{ ...match, hash, search, state }, index];
       }
     }
 
     return [null, null];
-  }, [pathname, state, matchers]);
+  }, [matchers, state, pathname, search, hash]);
 
   return routeIndex != null ? (
     <RouteMatchContext.Provider value={routeMatch}>{routes[routeIndex]?.props.children}</RouteMatchContext.Provider>

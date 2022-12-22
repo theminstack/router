@@ -4,11 +4,17 @@ import { useJsonMemo } from './internal/use-json-memo.js';
 import { type Router, getNavigation } from './router.js';
 import { useRouter } from './use-router.js';
 
-const useNavigate = (target?: Parameters<Router['go']>[0]): ((event?: SyntheticEvent<Element, any>) => void) => {
+type NavigateProps = {
+  (event?: SyntheticEvent<Element, any>): void;
+  readonly href: string;
+  readonly onClick: (event?: SyntheticEvent<Element, any>) => void;
+};
+
+const useNavigate = (target?: Parameters<Router['go']>[0]): NavigateProps => {
   const stableTarget = useJsonMemo(target);
   const router = useRouter();
-
-  return useCallback(
+  const href = router.getHref(target);
+  const onClick: NavigateProps['onClick'] = useCallback(
     (event) => {
       if (event?.isDefaultPrevented()) {
         return;
@@ -19,6 +25,8 @@ const useNavigate = (target?: Parameters<Router['go']>[0]): ((event?: SyntheticE
     },
     [router, stableTarget],
   );
+
+  return Object.assign(onClick, { href, onClick });
 };
 
 export { useNavigate };

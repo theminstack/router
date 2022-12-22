@@ -1,10 +1,20 @@
+/* eslint-disable max-lines */
 import 'normalize.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createGlobalStyle } from 'styled-components';
 
-import { Redirect, Route, Routes, useNavigate, useRouteMatch, useRouter } from './index.js';
+import {
+  createHashRouter,
+  Redirect,
+  Route,
+  RouterContext,
+  Routes,
+  useNavigate,
+  useRouteMatch,
+  useRouter,
+} from './index.js';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -56,19 +66,13 @@ const Demo = () => {
           </a>
         </li>
         <li>
-          <a onClick={back} href="#">
-            Back
-          </a>
+          <a {...back}>Back</a>
         </li>
         <li>
-          <a onClick={forward} href="#">
-            Forward
-          </a>
+          <a {...forward}>Forward</a>
         </li>
         <li>
-          <a onClick={a} href="#">
-            Push: /a
-          </a>
+          <a {...a}>Push: {a.href}</a>
         </li>
         <li>
           <a onClick={href} href="/b">
@@ -76,9 +80,7 @@ const Demo = () => {
           </a>
         </li>
         <li>
-          <a onClick={replace} href="#">
-            Replace: /c
-          </a>
+          <a {...replace}>Replace {replace.href}</a>
         </li>
         <li>
           <a onClick={href} href="/d/1/2/a/b/c">
@@ -150,9 +152,13 @@ const Demo = () => {
   );
 };
 
+// const router = createHashRouter();
+
 createRoot(document.body.appendChild(document.createElement('div'))).render(
   <StrictMode>
     <GlobalStyle />
-    <Demo />
+    {/* <RouterContext.Provider value={router}> */}
+      <Demo />
+    {/* </RouterContext.Provider> */}
   </StrictMode>,
 );

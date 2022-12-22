@@ -7,18 +7,22 @@ type RouterOptions = {
   readonly window: LiteWindow;
 };
 type UrlLike = string | { readonly href: string };
-type RouterNavigation = {
-  readonly replace?: boolean;
-  readonly state?: {} | null;
-  readonly to?: UrlLike | number;
-};
+type RouterNavigation = { readonly replace?: boolean; readonly state?: {} | null; readonly to?: UrlLike | number };
 type RouterHref = `${'http' | 'https'}://${string}`;
 type RouterLocation = {
+  readonly hash: string;
   readonly href: RouterHref;
   readonly pathname: string;
+  readonly search: string;
   readonly state: {} | null;
 };
 type Router = {
+  readonly getHref: {
+    (urlLike?: UrlLike): string;
+    (delta?: number): string;
+    (navigation?: RouterNavigation): string;
+    (target?: RouterNavigation | UrlLike | number): string;
+  };
   readonly go: {
     (urlLike?: UrlLike): void;
     (delta?: number): void;
@@ -62,8 +66,10 @@ const createRouter = ({ window, encodeUrl, decodeUrl }: RouterOptions): Router =
     const state = isRouterState(window.history.state) ? window.history.state.state : null;
 
     current = {
+      hash: url.hash,
       href: url.href as RouterHref,
       pathname: url.pathname,
+      search: url.search,
       state,
     };
 
@@ -71,6 +77,13 @@ const createRouter = ({ window, encodeUrl, decodeUrl }: RouterOptions): Router =
   };
 
   const self: Router = {
+    getHref: (deltaUrlOrNavigation = 0) => {
+      const { to = window.location.href } = getNavigation(deltaUrlOrNavigation);
+
+      return typeof to === 'number'
+        ? '#'
+        : encodeUrl(new URL(typeof to === 'string' ? to : to.href, window.location.href)).href;
+    },
     go: (deltaUrlOrNavigation = 0) => {
       const { replace = false, state = null, to = window.location.href } = getNavigation(deltaUrlOrNavigation);
 
@@ -90,6 +103,7 @@ const createRouter = ({ window, encodeUrl, decodeUrl }: RouterOptions): Router =
         try {
           window.history[replace ? 'replaceState' : 'pushState'](newState, '', url);
           update();
+          window.scrollTo({ behavior: 'instant' as never, left: 0, top: 0 });
         } catch (_error) {
           // An error may be thrown when...
           // - URLs have an origin that doesn't match the current page.
@@ -132,8 +146,8 @@ const createPathRouter = (): Router => {
 
 const createHashRouter = (): Router => {
   return createRouter({
-    decodeUrl: (url) => new URL(url.hash.slice(1), window.location.href),
-    encodeUrl: (url) => new URL(`#${url.pathname}${url.search}${url.hash}`, window.location.href),
+    decodeUrl: (url) => new URL(url.hash.slice(1) || url, window.location.href),
+    encodeUrl: (url) => new URL(url.hash || `#${url.pathname}${url.search}${url.hash}`, window.location.href),
     window,
   });
 };

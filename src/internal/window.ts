@@ -9,6 +9,7 @@ type LiteWindow = {
   };
   readonly location: { readonly assign: (url: URL) => void; readonly href: string; replace: (url: URL) => void };
   readonly removeEventListener: (event: 'popstate', listener: () => void, options?: { capture?: boolean }) => void;
+  readonly scrollTo: (options: { behavior: ScrollBehavior; left: 0; top: 0 }) => void;
 };
 
 type Listener = { readonly callback: () => void; readonly capture: boolean };
@@ -73,6 +74,7 @@ const createLiteWindow = (initialLocation = '', state: {} | null): LiteWindow =>
         listeners = listeners.filter((listener) => isListenerMatch(listener, testListener));
       }
     },
+    scrollTo: () => undefined,
   };
 
   return self;
