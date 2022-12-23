@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { createMatcher } from './internal/create-matcher.js';
 import { useJsonMemo } from './internal/use-json-memo.js';
-import { type RouteMatch } from './route-match.js';
+import { type RouteMatch } from './types/route-match.js';
 import { useLocation } from './use-location.js';
 
 const useRoute = (patterns: string | readonly string[] = []): RouteMatch | null => {

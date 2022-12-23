@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-import { type Router } from './router.js';
+import { type Router } from './types/router.js';
 
 const RouterContext = createContext<Router | null>(null);
 

@@ -1,7 +1,7 @@
-import { type Router } from '../router.js';
-import { type RouterLocation } from '../router-location.js';
+import { type Router } from '../types/router.js';
+import { type RouterLocation } from '../types/router-location.js';
 import { getRouterAction } from './get-router-action.js';
-import { type LiteWindow } from './lite-window.js';
+import { type LiteWindow } from './types/lite-window.js';
 
 type State = { readonly isPushed: boolean; readonly state: {} | null };
 

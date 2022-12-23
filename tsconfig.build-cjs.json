@@ -4,8 +4,8 @@
     "module": "CommonJS",
     "outDir": "lib/cjs",
     "noEmit": false,
-    "removeComments": true,
-    "sourceMap": true
+    "declaration": true,
+    "sourceMap": true,
   },
   "include": ["src/**/*.d.ts"],
   "files": ["src/index.ts"]

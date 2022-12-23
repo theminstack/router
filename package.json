@@ -3,7 +3,7 @@
   "description": "Basic routing for React.",
   "author": "Chris Ackerman <chris@topher.land>",
   "license": "ISC",
-  "version": "1.0.0-next.9",
+  "version": "1.0.0-next.10",
   "files": [
     "lib/**"
   ],
@@ -11,12 +11,12 @@
     "lib": "lib"
   },
   "type": "module",
-  "types": "lib/types/index.d.ts",
+  "types": "lib/cjs/index.d.ts",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
   "exports": {
     ".": {
-      "types": "./lib/types/index.d.ts",
+      "types": "./lib/cjs/index.d.ts",
       "require": "./lib/cjs/index.js",
       "default": "./lib/esm/index.js"
     }

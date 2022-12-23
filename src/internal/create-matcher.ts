@@ -1,4 +1,4 @@
-import { type Matcher } from './matcher.js';
+import { type Matcher } from './types/matcher.js';
 
 const createMatcher = <TData>(pattern: string, data: TData = undefined as TData): Matcher<TData> => {
   if (!pattern.startsWith('/')) {

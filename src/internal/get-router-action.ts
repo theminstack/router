@@ -1,4 +1,4 @@
-import { type RouterAction } from '../router-action.js';
+import { type RouterAction } from '../types/router-action.js';
 
 const getRouterAction = (action?: RouterAction | number | string): RouterAction => {
   return typeof action === 'object' && action != null

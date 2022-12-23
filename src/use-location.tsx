@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { type RouterLocation } from './router-location.js';
+import { type RouterLocation } from './types/router-location.js';
 import { useRouter } from './use-router.js';
 
 const useLocation = (): RouterLocation => {

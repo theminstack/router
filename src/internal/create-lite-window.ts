@@ -1,4 +1,4 @@
-import { type LiteWindow } from './lite-window.js';
+import { type LiteWindow } from './types/lite-window.js';
 
 type Listener = { readonly callback: () => void; readonly capture: boolean };
 type Entry = { readonly data: {} | null; readonly href: string };
@@ -9,7 +9,7 @@ const isListenerMatch = (a: Listener, b: Listener): boolean => {
 
 const createLiteWindow = (initialLocation: string, state: {} | null): LiteWindow => {
   let listeners: readonly Listener[] = [];
-  let index = 1;
+  let index = 0;
   let current: Entry = {
     data: state,
     href: new URL(initialLocation, 'http://localhost').href,
@@ -28,18 +28,22 @@ const createLiteWindow = (initialLocation: string, state: {} | null): LiteWindow
     },
     history: {
       go: (delta = 0) => {
-        index = Math.max(0, Math.min(stack.length - 1, index + delta));
-        current = stack[index] as Entry;
-        void Promise.resolve().then(() => listeners.forEach((listener) => listener.callback()));
+        void Promise.resolve().then(() => {
+          index = Math.max(0, Math.min(stack.length - 1, index + delta));
+          current = stack[index] as Entry;
+          listeners.forEach((listener) => listener.callback());
+        });
       },
       get length() {
         return stack.length;
       },
       pushState: (data = null, _unused, url) => {
-        stack.splice(index++, 1, createEntry(url, data));
+        stack.splice(++index, 1, createEntry(url, data));
+        current = stack.at(index) as Entry;
       },
       replaceState: (data, _unused, url) => {
         stack[index] = createEntry(url, data);
+        current = stack.at(index) as Entry;
       },
       get state() {
         return current.data;

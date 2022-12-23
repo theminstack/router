@@ -2,7 +2,7 @@ import { type SyntheticEvent, useCallback } from 'react';
 
 import { getRouterAction } from './internal/get-router-action.js';
 import { useJsonMemo } from './internal/use-json-memo.js';
-import { type RouterAction } from './router-action.js';
+import { type RouterAction } from './types/router-action.js';
 import { useRouter } from './use-router.js';
 
 const useNavigate = (action?: RouterAction | number | string): ((event?: SyntheticEvent<Element, any>) => void) => {
