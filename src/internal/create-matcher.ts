@@ -1,31 +1,33 @@
 import { type Matcher } from './matcher.js';
 
-const createMatcher = <TArgs>(path: string, args: TArgs = undefined as TArgs): Matcher<TArgs> => {
+const createMatcher = <TData>(pattern: string, data: TData = undefined as TData): Matcher<TData> => {
+  if (!pattern.startsWith('/')) {
+    pattern = `/${pattern}`;
+  }
+
   let isParameterized = false;
   let isPrefix = false;
 
   const names: string[] = [];
-  const expression = path
-    .replace(/:(\w+)|(?:^|\/)([*])$|[|\\{}()[\]^$+*?.]|-/gu, (match, name, wildcard) => {
-      if (name) {
-        isParameterized = true;
-        names.push(name);
-        return '([^/]*?)';
-      }
+  const expression = pattern.replace(/:(\w+)|\/([*])$|[|\\{}()[\]^$+*?.]|-/gu, (match, name, wildcard) => {
+    if (name) {
+      isParameterized = true;
+      names.push(name);
+      return '([^/]*?)';
+    }
 
-      if (wildcard) {
-        isPrefix = true;
-        names.push('*');
-        return '/(.*)';
-      }
+    if (wildcard) {
+      isPrefix = true;
+      names.push('*');
+      return '/(.*)';
+    }
 
-      return `\\${match === '-' ? 'x2d' : match}`;
-    })
-    .replace(/^(?!\/)/u, '/');
+    return `\\${match === '-' ? 'x2d' : match}`;
+  });
   const rx = new RegExp('^' + expression + '$', 'u');
 
-  return (pathname) => {
-    const match = pathname.match(rx);
+  return (path) => {
+    const match = path.match(rx);
 
     if (!match) {
       return [null, null];
@@ -40,11 +42,12 @@ const createMatcher = <TArgs>(path: string, args: TArgs = undefined as TArgs): M
         isParameterized,
         isPrefix,
         params,
-        pathname: pathname as `/${string}`,
-        pattern: path.replace(/\/\*$/u, '/'),
-        prefix: pathname.slice(0, pathname.length - (params['*']?.length ?? 0)) as `/${string}`,
+        path: match[0] as `/${string}`,
+        pathPrefix: match[0].slice(0, match[0].length - (params['*']?.length ?? 0)) as `/${string}`,
+        pattern: pattern as `/${string}`,
+        patternPrefix: pattern.replace(/\/\*$/u, '/') as `/${string}`,
       },
-      args,
+      data,
     ];
   };
 };

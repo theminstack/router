@@ -7,7 +7,7 @@ const isListenerMatch = (a: Listener, b: Listener): boolean => {
   return a.capture === b.capture && a.callback === b.callback;
 };
 
-const createLiteWindow = (initialLocation = '', state: {} | null): LiteWindow => {
+const createLiteWindow = (initialLocation: string, state: {} | null): LiteWindow => {
   let listeners: readonly Listener[] = [];
   let index = 1;
   let current: Entry = {

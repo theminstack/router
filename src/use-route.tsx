@@ -5,15 +5,15 @@ import { useJsonMemo } from './internal/use-json-memo.js';
 import { type RouteMatch } from './route-match.js';
 import { useLocation } from './use-location.js';
 
-const useRoute = (paths: string | readonly string[] = []): RouteMatch | null => {
-  const { state, pathname, search, hash } = useLocation();
-  const stablePaths = useJsonMemo(paths);
+const useRoute = (patterns: string | readonly string[] = []): RouteMatch | null => {
+  const { state, path, search, hash } = useLocation();
+  const stablePatterns = useJsonMemo(patterns);
   const matchers = useMemo(() => {
-    return (Array.isArray(stablePaths) ? stablePaths : [stablePaths]).map((path) => createMatcher(path));
-  }, [stablePaths]);
+    return (Array.isArray(stablePatterns) ? stablePatterns : [stablePatterns]).map((pattern) => createMatcher(pattern));
+  }, [stablePatterns]);
   const routeMatch = useMemo<RouteMatch | null>(() => {
     for (const matcher of matchers) {
-      const [match] = matcher(pathname);
+      const [match] = matcher(path);
 
       if (match) {
         return { ...match, hash, search, state };
@@ -21,7 +21,7 @@ const useRoute = (paths: string | readonly string[] = []): RouteMatch | null => 
     }
 
     return null;
-  }, [matchers, state, pathname, search, hash]);
+  }, [matchers, state, path, search, hash]);
 
   return routeMatch;
 };

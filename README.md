@@ -18,10 +18,6 @@ The [MinStack](https://minstack.rocks) Philosophy:
   - [Exclusive Routes](#exclusive-routes)
 - [Navigate On Click](#navigate-on-click)
 - [Redirect On Mount](#redirect-on-mount)
-- [Use Alternate Routers](#use-alternate-routers)
-  - [Browser Path](#browser-path)
-  - [Browser Hash](#browser-hash)
-  - [Memory Only](#memory-only)
 
 ## Getting Started
 
@@ -37,7 +33,7 @@ render(
 );
 ```
 
-Any component or hook which depends on a route, will throw an error if no router parent is present.
+Any component or hook which depends on a router, will throw an error if no router parent is present.
 
 The `BrowserHashRouter` is useful when the application's server does not support SPAs (eg. GitHub Pages). An SPA-compatible server will serve the application index file when a non-existent path is requested.
 
@@ -135,12 +131,14 @@ type RouteMatch = {
   readonly isParameterized: boolean;
   /** True if the matched pattern ended with a wildcard. */
   readonly isPrefix: boolean;
-  /** Matched pattern, excluding a wildcard. */
+  /** Matched pattern, including a wildcard. */
   readonly pattern: string;
-  /** Matched full pathname, including a wildcard part. */
-  readonly pathname: `/${string}`;
-  /** Matched pathname, excluding a wildcard part. */
-  readonly prefix: `/${string}`;
+  /** Matched pattern, excluding a wildcard. */
+  readonly patternPrefix: string;
+  /** Matched full path, including a wildcard part. */
+  readonly path: `/${string}`;
+  /** Matched prefix path, excluding a wildcard part. */
+  readonly pathPrefix: `/${string}`;
   /** Path parameter value map. */
   readonly params: Readonly<Record<string, string | undefined>>;
   /** Search (query) string including `?` prefix if non-empty. */
@@ -176,12 +174,80 @@ const App = () => {
 
 ## Navigate On Click
 
+No `<Link>` component is provided. Instead, a `useNavigate` hook is provided which returns a navigation callback.
+
+```tsx
+const App = () => {
+  const navigate = useNavigate();
+
+  return (
+    <a onClick={navigate} href={'/target/path'}>
+      <span>Click Here</span>
+    </a>
+  );
+};
+```
+
+The callback calls `event.preventDefault()` and pushes the `event.currentTarget.href` onto the browser history.
+
+A url can be passed to the hook in cases where the clickable element does not have an `href` property (eg. buttons).
+
+```tsx
+const App = () => {
+  const navigate = useNavigate('/target/path');
+
+  return (
+    <button onClick={navigate}>
+      <span>Click Here</span>
+    </button>
+  );
+};
+```
+
+When a url is passed directly to the hook, the callback can be called without an event (eg. `navigate()`), and it will still trigger the navigation.
+
+History state data can be provided and the current history entry can be replaced (instead of pushed) by passing an options object to the hook.
+
+```tsx
+const navigate = useNavigate({
+  href: '/target/path',
+  state: { key: 'value' },
+  replace: true,
+});
+```
+
+A number can be passed to the hook to navigate forward (positive) and backward (negative) through the browser's history, or to reload the page (zero).
+
+```tsx
+// Back
+const navigate = useNavigate(-1);
+
+// Forward
+const navigate = useNavigate(0);
+```
+
 ## Redirect On Mount
 
-## Use Alternate Routers
+The `Redirect` component can be used to replace the current history entry as soon as it is mounted. The history entry is _always_ replaced (not pushed) to avoid blocking back navigation.
 
-### Browser Path
+```tsx
+const App = () => {
+  return (
+    <Route path={'/go-home'}>
+      <Redirect href="/" />
+    </Route>
+  );
+};
+```
 
-### Browser Hash
+It also accepts an optional `state` property to set history state data.
 
-### Memory Only
+```tsx
+const App = () => {
+  return (
+    <Route path={'/go-home'}>
+      <Redirect href="/" state={{ key: 'value' }} />
+    </Route>
+  );
+};
+```

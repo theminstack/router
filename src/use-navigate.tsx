@@ -1,12 +1,12 @@
 import { type SyntheticEvent, useCallback } from 'react';
 
-import { getRouterNavigation } from './internal/get-router-navigation.js';
+import { getRouterAction } from './internal/get-router-action.js';
 import { useJsonMemo } from './internal/use-json-memo.js';
-import { type Router } from './router.js';
+import { type RouterAction } from './router-action.js';
 import { useRouter } from './use-router.js';
 
-const useNavigate = (target?: Parameters<Router['go']>[0]): ((event?: SyntheticEvent<Element, any>) => void) => {
-  const stableTarget = useJsonMemo(target);
+const useNavigate = (action?: RouterAction | number | string): ((event?: SyntheticEvent<Element, any>) => void) => {
+  const stableAction = useJsonMemo(action);
   const router = useRouter();
 
   return useCallback(
@@ -16,9 +16,9 @@ const useNavigate = (target?: Parameters<Router['go']>[0]): ((event?: SyntheticE
       }
 
       event?.preventDefault();
-      router.go({ to: event?.currentTarget.getAttribute('href') || undefined, ...getRouterNavigation(stableTarget) });
+      router.go({ href: event?.currentTarget.getAttribute('href') || undefined, ...getRouterAction(stableAction) });
     },
-    [router, stableTarget],
+    [router, stableAction],
   );
 };
 

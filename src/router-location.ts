@@ -1,7 +1,7 @@
 type RouterLocation = {
   readonly hash: '' | `#${string}`;
   readonly href: `${'http' | 'https'}://${string}`;
-  readonly pathname: `/${string}`;
+  readonly path: `/${string}`;
   readonly search: '' | `?${string}`;
   readonly state: {} | null;
 };

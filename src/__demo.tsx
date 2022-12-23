@@ -29,14 +29,14 @@ const Display = () => {
 };
 
 const SubRoutes = () => {
-  const { pattern = '/' } = useRouteMatch() ?? {};
+  const { patternPrefix = '/' } = useRouteMatch() ?? {};
 
   return (
     <Routes>
-      <Route path={`${pattern}a`}>
+      <Route path={`${patternPrefix}a`}>
         <Display />
       </Route>
-      <Route path={`${pattern}b`}>
+      <Route path={`${patternPrefix}b`}>
         <Display />
       </Route>
     </Routes>
@@ -46,7 +46,7 @@ const SubRoutes = () => {
 const Demo = () => {
   const back = useNavigate(-1);
   const forward = useNavigate(1);
-  const a = useNavigate({ state: { foo: 'bar' }, to: routePrefix + '/a' });
+  const a = useNavigate({ href: routePrefix + '/a', state: { foo: 'bar' } });
   const push = useNavigate();
   const replace = useNavigate({ replace: true });
 
@@ -84,8 +84,8 @@ const Demo = () => {
           </a>
         </li>
         <li>
-          <a onClick={push} href={routePrefix + '/d/1/2/a/b/c'}>
-            Push: /d/1/2/a/b/c
+          <a onClick={push} href={routePrefix + 'd/1/2/a/b/c'}>
+            Push: d/1/2/a/b/c
           </a>
         </li>
         <li>
@@ -95,12 +95,12 @@ const Demo = () => {
         </li>
         <li>
           <a onClick={push} href={routePrefix + '/e/1-2'}>
-            Push: /e/1-2 (href)
+            Push: /e/1-2
           </a>
         </li>
         <li>
           <a onClick={push} href={routePrefix + '/e/1-2-3'}>
-            Push: /e/1-2-3 (href)
+            Push: /e/1-2-3
           </a>
         </li>
         <li>
@@ -144,7 +144,7 @@ const Demo = () => {
           <SubRoutes />
         </Route>
         <Route path="/redirect">
-          <Redirect url={routePrefix + '/'} />
+          <Redirect href={routePrefix + '/'} />
         </Route>
         <Route>
           <Display />

@@ -7,12 +7,14 @@ type RouteMatch = {
   readonly isPrefix: boolean;
   /** Path parameter value map. */
   readonly params: Readonly<Record<string, string | undefined>>;
-  /** Matched full pathname, including a wildcard part. */
-  readonly pathname: `/${string}`;
-  /** Matched pattern, excluding a wildcard. */
+  /** Matched full path, including a wildcard part. */
+  readonly path: `/${string}`;
+  /** Matched prefix path, excluding a wildcard part. */
+  readonly pathPrefix: `/${string}`;
+  /** Matched pattern, including a wildcard. */
   readonly pattern: string;
-  /** Matched pathname, excluding a wildcard part. */
-  readonly prefix: `/${string}`;
+  /** Matched pattern, excluding a wildcard. */
+  readonly patternPrefix: string;
   /** Search (query) string including `?` prefix if non-empty. */
   readonly search: '' | `?${string}`;
   /** History state data (JSON serializable). */

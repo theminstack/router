@@ -15,20 +15,23 @@ const isRoute = (child: unknown): child is ReactElement<RouteProps, typeof Route
 };
 
 const Routes = ({ children }: RoutesProps = {}): JSX.Element | null => {
-  const { pathname, state, search, hash } = useLocation();
+  const { path, state, search, hash } = useLocation();
   const routes = Children.toArray(children).filter(isRoute);
-  const paths = routes.flatMap<[path: string, index: number]>((child, i) => {
+  const patterns = routes.flatMap<[pattern: string, index: number]>((child, i) => {
     return isRoute(child)
       ? Array.isArray(child.props.path)
-        ? child.props.path.map((path): [string, number] => [path, i])
+        ? child.props.path.map((childPath): [string, number] => [childPath, i])
         : [[child.props.path ?? '/*', i]]
       : [];
   });
-  const stablePaths = useJsonMemo(paths);
-  const matchers = useMemo(() => stablePaths.map(([path, index]) => createMatcher(path, index)), [stablePaths]);
+  const stablePatterns = useJsonMemo(patterns);
+  const matchers = useMemo(
+    () => stablePatterns.map(([pattern, index]) => createMatcher(pattern, index)),
+    [stablePatterns],
+  );
   const [routeMatch, routeIndex] = useMemo(() => {
     for (const matcher of matchers) {
-      const [match, index] = matcher(pathname);
+      const [match, index] = matcher(path);
 
       if (match) {
         return [{ ...match, hash, search, state }, index];
@@ -36,7 +39,7 @@ const Routes = ({ children }: RoutesProps = {}): JSX.Element | null => {
     }
 
     return [null, null];
-  }, [matchers, state, pathname, search, hash]);
+  }, [matchers, state, path, search, hash]);
 
   return routeIndex != null ? (
     <RouteMatchContext.Provider value={routeMatch}>{routes[routeIndex]?.props.children}</RouteMatchContext.Provider>
