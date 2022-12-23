@@ -223,6 +223,9 @@ A number can be passed to the hook to navigate forward (positive) and backward (
 const navigate = useNavigate(-1);
 
 // Forward
+const navigate = useNavigate(1);
+
+// Reload
 const navigate = useNavigate(0);
 ```
 
