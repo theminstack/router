@@ -1,173 +1,17 @@
-import { type LiteWindow, createLiteWindow } from './internal/window.js';
+import { type RouterLocation } from './router-location.js';
+import { type RouterNavigation } from './router-navigation.js';
+import { type UrlLike } from './url-like.js';
 
-type RouterState = { readonly isPushed: boolean; readonly state: {} | null };
-type RouterOptions = {
-  readonly decodeUrl: (url: URL) => URL;
-  readonly encodeUrl: (url: URL) => URL;
-  readonly window: LiteWindow;
-};
-type UrlLike = string | { readonly href: string };
-type RouterNavigation = { readonly replace?: boolean; readonly state?: {} | null; readonly to?: UrlLike | number };
-type RouterHref = `${'http' | 'https'}://${string}`;
-type RouterLocation = {
-  readonly hash: string;
-  readonly href: RouterHref;
-  readonly pathname: string;
-  readonly search: string;
-  readonly state: {} | null;
-};
 type Router = {
-  readonly getHref: {
-    (urlLike?: UrlLike): string;
-    (delta?: number): string;
-    (navigation?: RouterNavigation): string;
-    (target?: RouterNavigation | UrlLike | number): string;
-  };
   readonly go: {
-    (urlLike?: UrlLike): void;
+    (urlLike?: UrlLike | string): void;
     (delta?: number): void;
     (navigation?: RouterNavigation): void;
-    (target?: RouterNavigation | UrlLike | number): void;
+    (target?: RouterNavigation | UrlLike | number | string): void;
   };
   readonly isPushed: boolean;
   readonly location: RouterLocation;
   readonly subscribe: (subscriber: () => void) => () => void;
 };
 
-const isRouterState = (value: RouterState | {} | null): value is RouterState => {
-  return (
-    value != null &&
-    typeof value === 'object' &&
-    'state' in value &&
-    'isPushed' in value &&
-    typeof value.isPushed === 'boolean'
-  );
-};
-
-const getNavigation = (target?: RouterNavigation | UrlLike | number): RouterNavigation => {
-  return typeof target === 'object' && target != null && !('href' in target)
-    ? {
-        ...(target.replace == null ? {} : { replace: target.replace }),
-        ...(target.state == null ? {} : { state: target.state }),
-        ...(target.to == null ? {} : { to: target.to }),
-      }
-    : target == null
-    ? {}
-    : { to: target };
-};
-
-const createRouter = ({ window, encodeUrl, decodeUrl }: RouterOptions): Router => {
-  let current: RouterLocation;
-
-  const subscribers = new Set<() => void>();
-
-  const update = () => {
-    const url = decodeUrl(new URL(window.location.href));
-    const state = isRouterState(window.history.state) ? window.history.state.state : null;
-
-    current = {
-      hash: url.hash,
-      href: url.href as RouterHref,
-      pathname: url.pathname,
-      search: url.search,
-      state,
-    };
-
-    subscribers.forEach((subscriber) => subscriber());
-  };
-
-  const self: Router = {
-    getHref: (deltaUrlOrNavigation = 0) => {
-      const { to = window.location.href } = getNavigation(deltaUrlOrNavigation);
-
-      return typeof to === 'number'
-        ? '#'
-        : encodeUrl(new URL(typeof to === 'string' ? to : to.href, window.location.href)).href;
-    },
-    go: (deltaUrlOrNavigation = 0) => {
-      const { replace = false, state = null, to = window.location.href } = getNavigation(deltaUrlOrNavigation);
-
-      if (typeof to === 'number') {
-        window.history.go(to);
-      } else {
-        const url = encodeUrl(new URL(typeof to === 'string' ? to : to.href, window.location.href));
-        const newState: RouterState = {
-          isPushed: replace ? (isRouterState(window.history.state) ? window.history.state.isPushed : false) : true,
-          state,
-        };
-
-        if (url.href === window.location.href && JSON.stringify(newState) === JSON.stringify(window.history.state)) {
-          return;
-        }
-
-        try {
-          window.history[replace ? 'replaceState' : 'pushState'](newState, '', url);
-          update();
-          window.scrollTo({ behavior: 'instant' as never, left: 0, top: 0 });
-        } catch (_error) {
-          // An error may be thrown when...
-          // - URLs have an origin that doesn't match the current page.
-          // - Browser specific (eg. iOS Safari) state change limits are exceeded.
-          // - States are too large or not serializable.
-          console.warn(`History state change failed. Falling back to location change (state will be lost).`);
-          window.location[replace ? 'replace' : 'assign'](url);
-        }
-      }
-    },
-    get isPushed() {
-      return isRouterState(window.history.state) ? window.history.state.isPushed : false;
-    },
-    get location() {
-      return current;
-    },
-    subscribe: (handler) => {
-      handler = handler.bind(null);
-      subscribers.add(handler);
-      window.addEventListener('popstate', update, { capture: true });
-
-      return () => {
-        subscribers.delete(handler);
-
-        if (subscribers.size === 0) {
-          window.removeEventListener('popstate', update, { capture: true });
-        }
-      };
-    },
-  };
-
-  update();
-
-  return self;
-};
-
-const createPathRouter = (): Router => {
-  return createRouter({ decodeUrl: (url) => url, encodeUrl: (url) => url, window });
-};
-
-const createHashRouter = (): Router => {
-  return createRouter({
-    decodeUrl: (url) => new URL(url.hash.slice(1) || url, window.location.href),
-    encodeUrl: (url) => new URL(url.hash || `#${url.pathname}${url.search}${url.hash}`, window.location.href),
-    window,
-  });
-};
-
-const createMemoryRouter = (urlLike: UrlLike = '/', state: {} | null = null): Router => {
-  return createRouter({
-    decodeUrl: (url) => url,
-    encodeUrl: (url) => url,
-    window: createLiteWindow(typeof urlLike === 'string' ? urlLike : urlLike.href, state),
-  });
-};
-
-export {
-  type Router,
-  type RouterHref,
-  type RouterLocation,
-  type RouterNavigation,
-  type UrlLike,
-  createHashRouter,
-  createMemoryRouter,
-  createPathRouter,
-  getNavigation,
-};
+export { type Router };

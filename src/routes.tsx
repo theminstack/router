@@ -1,12 +1,17 @@
-import { type ReactNode, Children, useMemo } from 'react';
+import { type ReactElement, type ReactNode, Children, isValidElement, useMemo } from 'react';
 
-import { createMatcher } from './internal/matcher.js';
+import { createMatcher } from './internal/create-matcher.js';
 import { useJsonMemo } from './internal/use-json-memo.js';
-import { isRoute, RouteMatchContext } from './route.js';
+import { type RouteProps, Route } from './route.js';
+import { RouteMatchContext } from './route-match-context.js';
 import { useLocation } from './use-location.js';
 
 type RoutesProps = {
   readonly children?: ReactNode;
+};
+
+const isRoute = (child: unknown): child is ReactElement<RouteProps, typeof Route> => {
+  return isValidElement(child) && child.type === Route;
 };
 
 const Routes = ({ children }: RoutesProps = {}): JSX.Element | null => {

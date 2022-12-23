@@ -5,16 +5,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createGlobalStyle } from 'styled-components';
 
-import {
-  createHashRouter,
-  Redirect,
-  Route,
-  RouterContext,
-  Routes,
-  useNavigate,
-  useRouteMatch,
-  useRouter,
-} from './index.js';
+import { createPathRouter, Redirect, Route, RouterContext, Routes, useNavigate, useRouteMatch } from './index.js';
+
+const routePrefix = '';
+const router = createPathRouter();
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -25,7 +19,6 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const Display = () => {
-  const router = useRouter();
   const match = useRouteMatch();
 
   return (
@@ -53,68 +46,81 @@ const SubRoutes = () => {
 const Demo = () => {
   const back = useNavigate(-1);
   const forward = useNavigate(1);
-  const a = useNavigate({ state: { foo: 'bar' }, to: '/a' });
-  const href = useNavigate();
-  const replace = useNavigate({ replace: true, to: '/c' });
+  const a = useNavigate({ state: { foo: 'bar' }, to: routePrefix + '/a' });
+  const push = useNavigate();
+  const replace = useNavigate({ replace: true });
 
   return (
     <div>
       <ul>
         <li>
-          <a onClick={href} href="/">
+          <a onClick={push} href="/">
             Home
           </a>
         </li>
         <li>
-          <a {...back}>Back</a>
-        </li>
-        <li>
-          <a {...forward}>Forward</a>
-        </li>
-        <li>
-          <a {...a}>Push: {a.href}</a>
-        </li>
-        <li>
-          <a onClick={href} href="/b">
-            Push: /b (href)
+          <a onClick={back} href="#">
+            Back
           </a>
         </li>
         <li>
-          <a {...replace}>Replace {replace.href}</a>
-        </li>
-        <li>
-          <a onClick={href} href="/d/1/2/a/b/c">
-            Push: /d/1/2/a/b/c (href)
+          <a onClick={forward} href="#">
+            Forward
           </a>
         </li>
         <li>
-          <a onClick={href} href="/e/1-2">
+          <a onClick={a} href={routePrefix + '/a'}>
+            Push: a
+          </a>
+        </li>
+        <li>
+          <a onClick={push} href={routePrefix + '/b'}>
+            Push: b
+          </a>
+        </li>
+        <li>
+          <a onClick={replace} href={routePrefix + '/c'}>
+            Replace: c
+          </a>
+        </li>
+        <li>
+          <a onClick={push} href={routePrefix + '/d/1/2/a/b/c'}>
+            Push: /d/1/2/a/b/c
+          </a>
+        </li>
+        <li>
+          <a onClick={push} href={routePrefix + '../d'}>
+            Push: ../d
+          </a>
+        </li>
+        <li>
+          <a onClick={push} href={routePrefix + '/e/1-2'}>
             Push: /e/1-2 (href)
           </a>
         </li>
         <li>
-          <a onClick={href} href="/e/1-2-3">
+          <a onClick={push} href={routePrefix + '/e/1-2-3'}>
             Push: /e/1-2-3 (href)
           </a>
         </li>
         <li>
-          <a onClick={href} href="/f/a">
-            Push: /f/a (href)
+          <a onClick={push} href={routePrefix + '/f/a'}>
+            Push: /f/a
           </a>
         </li>
         <li>
-          <a onClick={href} href="/f/b">
-            Push: /f/b (href)
+          <a onClick={push} href={routePrefix + '/f/b'}>
+            Push: /f/b
           </a>
         </li>
         <li>
-          <a onClick={href} href="/abc">
-            Push: /abc (href)
+          <a onClick={push} href={routePrefix + '/abc'}>
+            Push: /abc
           </a>
         </li>
         <li>
-          <a onClick={href} href="/redirect">
-            Redirect
+          <a onClick={push} href={routePrefix + '/redirect'}>
+            Push: /redirect
           </a>
         </li>
       </ul>
@@ -138,7 +144,7 @@ const Demo = () => {
           <SubRoutes />
         </Route>
         <Route path="/redirect">
-          <Redirect url={'/'} />
+          <Redirect url={routePrefix + '/'} />
         </Route>
         <Route>
           <Display />
@@ -157,8 +163,8 @@ const Demo = () => {
 createRoot(document.body.appendChild(document.createElement('div'))).render(
   <StrictMode>
     <GlobalStyle />
-    {/* <RouterContext.Provider value={router}> */}
+    <RouterContext.Provider value={router}>
       <Demo />
-    {/* </RouterContext.Provider> */}
+    </RouterContext.Provider>
   </StrictMode>,
 );

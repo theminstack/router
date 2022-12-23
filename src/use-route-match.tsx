@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 
-import { RouteMatchContext } from './route.js';
-import { type RouteMatch } from './use-route.js';
+import { type RouteMatch } from './route-match.js';
+import { RouteMatchContext } from './route-match-context.js';
 
 const useRouteMatch = (): RouteMatch | null => {
   return useContext(RouteMatchContext);

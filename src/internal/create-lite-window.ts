@@ -1,16 +1,4 @@
-type LiteWindow = {
-  readonly addEventListener: (event: 'popstate', listener: () => void, options?: { capture?: boolean }) => void;
-  readonly history: {
-    readonly go: (delta: number) => void;
-    readonly length: number;
-    readonly pushState: (state: {} | null, unused: '', url: URL) => void;
-    readonly replaceState: (state: {} | null, unused: '', url: URL) => void;
-    readonly state: {} | null;
-  };
-  readonly location: { readonly assign: (url: URL) => void; readonly href: string; replace: (url: URL) => void };
-  readonly removeEventListener: (event: 'popstate', listener: () => void, options?: { capture?: boolean }) => void;
-  readonly scrollTo: (options: { behavior: ScrollBehavior; left: 0; top: 0 }) => void;
-};
+import { type LiteWindow } from './lite-window.js';
 
 type Listener = { readonly callback: () => void; readonly capture: boolean };
 type Entry = { readonly data: {} | null; readonly href: string };
@@ -80,4 +68,4 @@ const createLiteWindow = (initialLocation = '', state: {} | null): LiteWindow =>
   return self;
 };
 
-export { type LiteWindow, createLiteWindow };
+export { createLiteWindow };

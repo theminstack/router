@@ -1,9 +1,7 @@
-import { createContext, useContext } from 'react';
+import { useContext } from 'react';
 
-import { createMemoryRouter, createPathRouter } from './router.js';
-
-const RouterContext = createContext(typeof window === 'undefined' ? createMemoryRouter() : createPathRouter());
+import { RouterContext } from './router-context.js';
 
 const useRouter = () => useContext(RouterContext);
 
-export { RouterContext, useRouter };
+export { useRouter };
