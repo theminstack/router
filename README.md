@@ -11,6 +11,7 @@ The [MinStack](https://minstack.rocks) Philosophy:
 
 ---
 
+- [Getting Started](#getting-started)
 - [Match Routes By Path](#match-routes-by-path)
   - [Path Parameters](#path-parameters)
   - [Match Data](#match-data)
@@ -22,26 +23,50 @@ The [MinStack](https://minstack.rocks) Philosophy:
   - [Browser Hash](#browser-hash)
   - [Memory Only](#memory-only)
 
+## Getting Started
+
+Wrap your application with a router: `BrowserRouter`, `BrowserHashRouter`, or `MemoryRouter`.
+
+```tsx
+import { BrowserRouter } from '@minstack/router';
+
+render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>,
+);
+```
+
+Any component or hook which depends on a route, will throw an error if no router parent is present.
+
+The `BrowserHashRouter` is useful when the application's server does not support SPAs (eg. GitHub Pages). An SPA-compatible server will serve the application index file when a non-existent path is requested.
+
+The `MemoryRouter` is useful for SSR and testing, when there is no `window` global.
+
 ## Match Routes By Path
 
 Use the `Route` component.
 
 ```tsx
-render(
-  <Route path={'/foo'}>
-    <p>Only rendered if the route is exactly "/foo".</p>
-  </Route>,
-);
+const App = () => {
+  return (
+    <Route path={'/foo'}>
+      <p>Only rendered if the route is exactly "/foo".</p>
+    </Route>,
+  );
+};
 ```
 
 The `path` property also accepts an array of paths.
 
 ```tsx
-render(
-  <Route path={['/foo', '/bar']}>
-    <p>Only rendered if the route is exactly "/foo" or "/bar".</p>
-  </Route>,
-);
+const App = () => {
+  return (
+    <Route path={['/foo', '/bar']}>
+      <p>Only rendered if the route is exactly "/foo" or "/bar".</p>
+    </Route>,
+  );
+};
 ```
 
 The leading `/` is optional, but omitting it does _NOT_ make the path relative. Paths are always absolute, and the slash is simply added when not present.
@@ -68,11 +93,13 @@ const User = () => {
   return <div>UserID: {params.id}</div>;
 };
 
-render(
-  <Route path={'/user/:id'}>
-    <User />
-  </Route>,
-);
+const App = () => {
+  return (
+    <Route path={'/user/:id'}>
+      <User />
+    </Route>,
+  );
+};
 ```
 
 Parameter names can only contain letters, numbers, and underscores (`_`). If two parameters with the same name are present, only the value for the last one will be captured.
@@ -86,14 +113,16 @@ A path may also end with a wildcard (`/*`). Wildcards are only allowed at the en
 ```tsx
 const File = () => {
   const { params } = useRouteMatch();
-  return <div>Filename: {params["*"]}</div>
+  return <div>Filename: {params['*']}</div>;
 };
 
-render(
-  <Route path={"/file/*"}>
-    <File />
-  </Route>
-);
+const App = () => {
+  return (
+    <Route path={'/file/*'}>
+      <File />
+    </Route>,
+  );
+};
 ```
 
 ### Match Data
@@ -120,7 +149,7 @@ type RouteMatch = {
   readonly hash: '' | `#${string}`;
   /** History state data (JSON serializable). */
   readonly state: {} | null;
-}
+};
 ```
 
 ### Exclusive Routes
@@ -128,17 +157,19 @@ type RouteMatch = {
 To match only one route from a set, wrap the `Route` components in a `Routes` parent.
 
 ```tsx
-render(
-  <Routes>
-    <Route path={'/user/settings'}>...</Route>
-    <Route path={'/user/:id'}>
-      <p>Never matches "/user/settings" due to the previous route.</p>
-    </Route>
-    <Route>
-      <p>Catch-all route matches anything not matched above.</p>
-    </Route>
-  </Routes>,
-);
+const App = () => {
+  return (
+    <Routes>
+      <Route path={'/user/settings'}>...</Route>
+      <Route path={'/user/:id'}>
+        <p>Never matches "/user/settings" due to the previous route.</p>
+      </Route>
+      <Route>
+        <p>Catch-all route matches anything not matched above.</p>
+      </Route>
+    </Routes>,
+  );
+};
 ```
 
 **NOTE:** The `useRoute` hook is not affected by a `<Routes>` parent.

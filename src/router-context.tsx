@@ -1,8 +1,7 @@
 import { createContext } from 'react';
 
-import { createMemoryRouter } from './create-memory-router.js';
-import { createPathRouter } from './create-path-router.js';
+import { type Router } from './router.js';
 
-const RouterContext = createContext(typeof window === 'undefined' ? createMemoryRouter() : createPathRouter());
+const RouterContext = createContext<Router | null>(null);
 
 export { RouterContext };

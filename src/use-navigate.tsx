@@ -1,6 +1,6 @@
 import { type SyntheticEvent, useCallback } from 'react';
 
-import { getRouterNavigation } from './get-router-navigation.js';
+import { getRouterNavigation } from './internal/get-router-navigation.js';
 import { useJsonMemo } from './internal/use-json-memo.js';
 import { type Router } from './router.js';
 import { useRouter } from './use-router.js';

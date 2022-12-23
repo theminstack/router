@@ -5,10 +5,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createGlobalStyle } from 'styled-components';
 
-import { createPathRouter, Redirect, Route, RouterContext, Routes, useNavigate, useRouteMatch } from './index.js';
+import { BrowserRouter, Redirect, Route, Routes, useNavigate, useRouteMatch, useRouter } from './index.js';
 
 const routePrefix = '';
-const router = createPathRouter();
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -19,6 +18,7 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const Display = () => {
+  const router = useRouter();
   const match = useRouteMatch();
 
   return (
@@ -163,8 +163,8 @@ const Demo = () => {
 createRoot(document.body.appendChild(document.createElement('div'))).render(
   <StrictMode>
     <GlobalStyle />
-    <RouterContext.Provider value={router}>
+    <BrowserRouter>
       <Demo />
-    </RouterContext.Provider>
+    </BrowserRouter>
   </StrictMode>,
 );

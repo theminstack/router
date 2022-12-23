@@ -1,6 +1,6 @@
-import { getRouterNavigation } from '../get-router-navigation.js';
 import { type Router } from '../router.js';
 import { type RouterLocation } from '../router-location.js';
+import { getRouterNavigation } from './get-router-navigation.js';
 import { type LiteWindow } from './lite-window.js';
 
 type State = { readonly isPushed: boolean; readonly state: {} | null };
