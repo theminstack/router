@@ -4,24 +4,22 @@ import { createMatcher } from './internal/create-matcher.js';
 import { useJsonMemo } from './internal/use-json-memo.js';
 import { type RouteMatch } from './types/route-match.js';
 import { useLocation } from './use-location.js';
+import { useRouteMatch } from './use-route-match.js';
 
-const useRoute = (patterns: string | readonly string[] = []): RouteMatch | null => {
+const useRoute = (pathPattern: string[] | string = []): RouteMatch | null => {
   const { state, path, search, hash } = useLocation();
-  const stablePatterns = useJsonMemo(patterns);
-  const matchers = useMemo(() => {
-    return (Array.isArray(stablePatterns) ? stablePatterns : [stablePatterns]).map((pattern) => createMatcher(pattern));
-  }, [stablePatterns]);
-  const routeMatch = useMemo<RouteMatch | null>(() => {
-    for (const matcher of matchers) {
-      const [match] = matcher(path);
-
-      if (match) {
-        return { ...match, hash, search, state };
-      }
-    }
-
-    return null;
-  }, [matchers, state, path, search, hash]);
+  const patternPrefix = useRouteMatch()?.patternPrefix ?? '/';
+  const patterns = useJsonMemo(
+    (Array.isArray(pathPattern) ? pathPattern : [pathPattern ?? '*']).map((pattern): `/${string}` => {
+      return pattern.startsWith('/') ? (pattern as `/${string}`) : `${patternPrefix}${pattern}`;
+    }),
+  );
+  const matcher = useMemo(() => createMatcher(patterns), [patterns]);
+  const match = useMemo(() => matcher(path), [matcher, path]);
+  const routeMatch = useMemo<RouteMatch | null>(
+    () => match && { ...match, hash, search, state },
+    [match, state, search, hash],
+  );
 
   return routeMatch;
 };

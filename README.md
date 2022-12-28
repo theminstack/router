@@ -16,6 +16,7 @@ The [MinStack](https://minstack.rocks) Philosophy:
   - [Path Parameters](#path-parameters)
   - [Match Data](#match-data)
   - [Exclusive Routes](#exclusive-routes)
+  - [Nested Routes](#nested-routes)
 - [Navigate On Click](#navigate-on-click)
 - [Redirect On Mount](#redirect-on-mount)
 
@@ -64,8 +65,6 @@ const App = () => {
   );
 };
 ```
-
-The leading `/` is optional, but omitting it does _NOT_ make the path relative. Paths are always absolute, and the slash is simply added when not present.
 
 Routes can also be matched with the `useRoute` hook.
 
@@ -171,6 +170,28 @@ const App = () => {
 ```
 
 **NOTE:** The `useRoute` hook is not affected by a `<Routes>` parent.
+
+### Nested Routes
+
+The leading slash can be omitted from a nested route to make the pattern relative to a parent pattern (without the trailing wildcard).
+
+```tsx
+const App = () => {
+  return (
+    <Route path={'/parent/*'}>
+      <Route path={'child'}>
+        <p>Matches pattern "/parent/child"</p>
+      </Route>
+      <Route path={''}>
+        <p>Matches pattern "/parent/"</p>
+      </Route>
+      <Route path={'*'}>
+        <p>Matches pattern "/parent/*"</p>
+      </Route>
+    </Route>
+  );
+};
+```
 
 ## Navigate On Click
 

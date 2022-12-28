@@ -3,10 +3,10 @@ import { describe, expect, test, vitest } from 'vitest';
 import { renderWithRouter } from './__test.js';
 import { BrowserRouter } from './browser-router.js';
 
-describe('BrowserHashRouter', () => {
-  test('uses window.history and decodes hash routes', async () => {
+describe('BrowserRouter', () => {
+  test('uses window.history and decodes path routes', async () => {
     const pushState = vitest.spyOn(window.history, 'pushState');
-    const { router } = renderWithRouter(BrowserRouter);
+    const { router } = renderWithRouter(null, BrowserRouter);
 
     router.go('/foo?bar#baz');
 

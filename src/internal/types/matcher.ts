@@ -1,5 +1,5 @@
 import { type Match } from './match.js';
 
-type Matcher<TArgs> = (path: string) => [Match, TArgs] | [null, null];
+type Matcher = (path: string) => Match | null;
 
 export { type Matcher };

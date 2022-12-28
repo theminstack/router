@@ -6,7 +6,7 @@ import { BrowserHashRouter } from './browser-hash-router.js';
 describe('BrowserHashRouter', () => {
   test('uses window.history and decodes hash routes', async () => {
     const pushState = vitest.spyOn(window.history, 'pushState');
-    const { router } = renderWithRouter(BrowserHashRouter);
+    const { router } = renderWithRouter(null, BrowserHashRouter);
 
     router.go('#/foo?bar#baz');
 

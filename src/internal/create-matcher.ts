@@ -1,10 +1,6 @@
 import { type Matcher } from './types/matcher.js';
 
-const createMatcher = <TData>(pattern: string, data: TData = undefined as TData): Matcher<TData> => {
-  if (!pattern.startsWith('/')) {
-    pattern = `/${pattern}`;
-  }
-
+const createOneMatcher = (pattern: `/${string}`): Matcher => {
   let isParameterized = false;
   let isPrefix = false;
 
@@ -30,25 +26,37 @@ const createMatcher = <TData>(pattern: string, data: TData = undefined as TData)
     const match = path.match(rx);
 
     if (!match) {
-      return [null, null];
+      return null;
     }
 
     const params: Record<string, string | undefined> = {};
 
     match.slice(1).forEach((value, i) => (params[names[i] as string] = value));
 
-    return [
-      {
-        isParameterized,
-        isPrefix,
-        params,
-        path: match[0] as `/${string}`,
-        pathPrefix: match[0].slice(0, match[0].length - (params['*']?.length ?? 0)) as `/${string}`,
-        pattern: pattern as `/${string}`,
-        patternPrefix: pattern.replace(/\/\*$/u, '/') as `/${string}`,
-      },
-      data,
-    ];
+    return {
+      isParameterized,
+      isPrefix,
+      params,
+      path: match[0] as `/${string}`,
+      pathPrefix: match[0].slice(0, match[0].length - (params['*']?.length ?? 0)) as `/${string}`,
+      pattern: pattern as `/${string}`,
+      patternPrefix: pattern.replace(/\/\*$/u, '/') as `/${string}`,
+    };
+  };
+};
+
+const createMatcher = (pattern: `/${string}`[]): Matcher => {
+  const matchers = pattern.map(createOneMatcher);
+
+  return (path) => {
+    for (const matcher of matchers) {
+      const result = matcher(path);
+      if (result) {
+        return result;
+      }
+    }
+
+    return null;
   };
 };
 

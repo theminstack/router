@@ -1,30 +1,31 @@
 import { type RenderResult, render } from '@testing-library/react';
-import { type ComponentType, type ReactElement, type ReactNode } from 'react';
+import { type ComponentProps, type ComponentType, type ReactElement, type ReactNode } from 'react';
 import { assert } from 'vitest';
 
+import { MemoryRouter } from './memory-router.js';
 import { type Router } from './types/router.js';
 import { useRouter } from './use-router.js';
 
-type RouterRenderResult = RenderResult & {
+type RenderWithRouterResult = RenderResult & {
   router: Router;
 };
 
-const renderWithRouter = <TProps extends { children?: ReactNode }>(
-  RouterComponent: ComponentType<TProps>,
-  ui: ReactElement = <></>,
-  props = {} as Omit<TProps, 'children'>,
-): RouterRenderResult => {
-  let router: Router | undefined;
+const renderWithRouter = <TRouter extends ComponentType<{ children?: ReactNode }> = typeof MemoryRouter>(
+  ui: ReactElement | null = null,
+  RouterComponent: TRouter = MemoryRouter as TRouter,
+  props = {} as Omit<ComponentProps<TRouter>, 'children'>,
+): RenderWithRouterResult => {
+  let router: Router;
 
   const Capture = () => {
     router = useRouter();
     return null;
   };
 
-  const result = render(ui, {
+  const result = render(ui ?? <></>, {
     wrapper: ({ children }) => {
       return (
-        <RouterComponent {...(props as TProps)}>
+        <RouterComponent {...(props as any)}>
           <Capture />
           {children}
         </RouterComponent>
@@ -32,9 +33,13 @@ const renderWithRouter = <TProps extends { children?: ReactNode }>(
     },
   });
 
-  assert(router);
+  Object.defineProperties(result, {
+    router: { configurable: true, enumerable: true, get: () => router },
+  });
 
-  return { ...result, router };
+  assert((result as RenderWithRouterResult).router);
+
+  return result as RenderWithRouterResult;
 };
 
-export { renderWithRouter };
+export { type RenderWithRouterResult, renderWithRouter };

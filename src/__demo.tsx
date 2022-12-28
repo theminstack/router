@@ -128,6 +128,7 @@ const Demo = () => {
         <Route path="/a">
           <Display />
         </Route>
+        <div>Not a route, so always visible</div>
         <Route path="/b">
           <Display />
         </Route>
