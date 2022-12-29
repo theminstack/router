@@ -2,51 +2,276 @@
 
 Basic declarative routing for React.
 
-**It does:**
+The [MinStack](https://minstack.rocks) Philosophy:
 
-- Match routes by path (`<Route>`)
-- Match one route exclusively from a set of routes (`<Routes>`)
-- Integrate with any clickable element (`useNavigate()`, `useNavigateBack()`)
-- Support browser path or hash operation
-- Support memory-only operation
-- Support path parameters and wildcards (`useParam()`, `useRouteMatch()`)
-- Support accessing search/query parameters (`useSearchParams()`, `useLocation()`)
-- Support redirection (`<Redirect>`)
-- Support navigation blocking (`<ConfirmNavigation>`, `useConfirmNavigation()`)
+- **Simple:** Minimal and opinionated APIs and feature sets.
+- **Small:** Zero dependencies and smaller bundles than most alternatives.
+- **Fast:** Optimization through simplicity.
+- **Typed:** Written in Typescript. Designed for Typescript.
 
-**It does not:**
+---
 
-- Match routes by search parameter
-- Provide lazy loading
-- Provide error boundaries
-- Provide a `<Link>` component
+- [Getting Started](#getting-started)
+- [Match Routes By Path](#match-routes-by-path)
+  - [Path Parameters](#path-parameters)
+  - [Match Data](#match-data)
+  - [Exclusive Routes](#exclusive-routes)
+  - [Nested Routes](#nested-routes)
+- [Navigate On Click](#navigate-on-click)
+- [Redirect On Mount](#redirect-on-mount)
 
-This is a router, and all it does is route, navigate, and provide access to related information. Everything else is up to the rendered route content and leveraging the core API.
+## Getting Started
 
-Search parameter routing is an anti-pattern. It is not consistently supported by web servers (eg. NGINX, ExpressJS). It is contrary to the semantic purpose of the query string, which is to refine the data/operation indicated by the URI host/path.
+Wrap your application with a router: `BrowserRouter`, `BrowserHashRouter`, or `MemoryRouter`.
 
-Lazy loading can be handled with `React.lazy()`, dynamic `import()`, and the `<Suspense>` component. Building it into a router is unnecessary overhead which increases the library size while _reducing_ flexibility.
+```tsx
+import { BrowserRouter } from '@minstack/router';
 
-Error boundaries are also something that can easily be implemented as needed or provided by a separate purpose-built library.
+render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>,
+);
+```
 
-Instead of a `<Link>` component, the `useNavigate()` and `useNavigateBack()` hooks return callbacks which can be passed to the `onClick` event of any element. This provides greater flexibility for integration with existing link/button components.
+Any component or hook which depends on a router, will throw an error if no router parent is present.
 
-## Route
+The `BrowserHashRouter` is useful when the application's server does not support SPAs (eg. GitHub Pages). An SPA-compatible server will serve the application index file when a non-existent path is requested.
 
-## Routes
+The `MemoryRouter` is useful for SSR and testing, when there is no `window` global.
 
-## Path Parameters
+## Match Routes By Path
 
-## Links
+Use the `Route` component.
 
-## Browser Routing
+```tsx
+const App = () => {
+  return (
+    <Route path={'/foo'}>
+      <p>Only rendered if the route is exactly "/foo".</p>
+    </Route>,
+  );
+};
+```
 
-### Path
+The `path` property also accepts an array of paths.
 
-### Hash
+```tsx
+const App = () => {
+  return (
+    <Route path={['/foo', '/bar']}>
+      <p>Only rendered if the route is exactly "/foo" or "/bar".</p>
+    </Route>,
+  );
+};
+```
 
-## Memory Routing
+Routes can also be matched with the `useRoute` hook.
 
-## Navigation Blocking
+```tsx
+// Match a single path...
+const match = useRoute('/foo');
 
-## Search Parameters
+// Or, multiple paths...
+const match = useRoute(['/foo', '/bar']);
+```
+
+The returned match will be `null` if the route is not matched, or an object containing [match data](#match-data) if the route is matched.
+
+### Path Parameters
+
+Non-exact paths can be matched using path parameters.
+
+```tsx
+const User = () => {
+  const { params } = useRouteMatch();
+  return <div>UserID: {params.id}</div>;
+};
+
+const App = () => {
+  return (
+    <Route path={'/user/:id'}>
+      <User />
+    </Route>,
+  );
+};
+```
+
+Parameter names can only contain letters, numbers, and underscores (`_`). If two parameters with the same name are present, only the value for the last one will be captured.
+
+Path parameters are never optional, and will (non-greedy) match everything up to the next forward slash (`/`).
+
+Because parameters are non-greedy, they can be separated by any character other than a number, letter, or underscore (eg. `:foo-:bar`). However, If there is no separator between parameters (eg. `:foo:bar`), every parameter except the last one will always be empty (`""`).
+
+A path may also end with a wildcard (`/*`). Wildcards are only allowed at the end of a path, and must be preceded by a forward slash. The value matched by the wildcard is stored in `params["*"]`. An asterisk (`*`) anywhere else else in the path is matched literally.
+
+```tsx
+const File = () => {
+  const { params } = useRouteMatch();
+  return <div>Filename: {params['*']}</div>;
+};
+
+const App = () => {
+  return (
+    <Route path={'/file/*'}>
+      <File />
+    </Route>,
+  );
+};
+```
+
+### Match Data
+
+The `useRoute` and `useRouteMatch` hooks return the following data.
+
+```tsx
+type RouteMatch = {
+  /** True if the matched pattern contained path parameters. */
+  readonly isParameterized: boolean;
+  /** True if the matched pattern ended with a wildcard. */
+  readonly isPrefix: boolean;
+  /** Matched pattern, including a wildcard. */
+  readonly pattern: string;
+  /** Matched pattern, excluding a wildcard. */
+  readonly patternPrefix: string;
+  /** Matched full path, including a wildcard part. */
+  readonly path: `/${string}`;
+  /** Matched prefix path, excluding a wildcard part. */
+  readonly pathPrefix: `/${string}`;
+  /** Path parameter value map. */
+  readonly params: Readonly<Record<string, string | undefined>>;
+  /** Search (query) string including `?` prefix if non-empty. */
+  readonly search: '' | `?${string}`;
+  /** Hash string including `#` prefix if non-empty. */
+  readonly hash: '' | `#${string}`;
+  /** History state data (JSON serializable). */
+  readonly state: {} | null;
+};
+```
+
+### Exclusive Routes
+
+To match only one route from a set, wrap the `Route` components in a `Routes` parent.
+
+```tsx
+const App = () => {
+  return (
+    <Routes>
+      <Route path={'/user/settings'}>...</Route>
+      <Route path={'/user/:id'}>
+        <p>Never matches "/user/settings" due to the previous route.</p>
+      </Route>
+      <Route>
+        <p>Catch-all route matches anything not matched above.</p>
+      </Route>
+    </Routes>,
+  );
+};
+```
+
+**NOTE:** The `useRoute` hook is not affected by a `<Routes>` parent.
+
+### Nested Routes
+
+The leading slash can be omitted from a nested route to make the pattern relative to a parent pattern (without the trailing wildcard).
+
+```tsx
+const App = () => {
+  return (
+    <Route path={'/parent/*'}>
+      <Route path={'child'}>
+        <p>Matches pattern "/parent/child"</p>
+      </Route>
+      <Route path={''}>
+        <p>Matches pattern "/parent/"</p>
+      </Route>
+      <Route path={'*'}>
+        <p>Matches pattern "/parent/*"</p>
+      </Route>
+    </Route>
+  );
+};
+```
+
+## Navigate On Click
+
+No `<Link>` component is provided. Instead, a `useNavigate` hook is provided which returns a navigation callback.
+
+```tsx
+const App = () => {
+  const navigate = useNavigate();
+
+  return (
+    <a onClick={navigate} href={'/target/path'}>
+      <span>Click Here</span>
+    </a>
+  );
+};
+```
+
+The callback calls `event.preventDefault()` and pushes the `event.currentTarget.href` onto the browser history.
+
+A url can be passed to the hook in cases where the clickable element does not have an `href` property (eg. buttons).
+
+```tsx
+const App = () => {
+  const navigate = useNavigate('/target/path');
+
+  return (
+    <button onClick={navigate}>
+      <span>Click Here</span>
+    </button>
+  );
+};
+```
+
+When a url is passed directly to the hook, the callback can be called without an event (eg. `navigate()`), and it will still trigger the navigation.
+
+History state data can be provided and the current history entry can be replaced (instead of pushed) by passing an options object to the hook.
+
+```tsx
+const navigate = useNavigate({
+  href: '/target/path',
+  state: { key: 'value' },
+  replace: true,
+});
+```
+
+A number can be passed to the hook to navigate forward (positive) and backward (negative) through the browser's history, or to reload the page (zero).
+
+```tsx
+// Back
+const navigate = useNavigate(-1);
+
+// Forward
+const navigate = useNavigate(1);
+
+// Reload
+const navigate = useNavigate(0);
+```
+
+## Redirect On Mount
+
+The `Redirect` component can be used to replace the current history entry as soon as it is mounted. The history entry is _always_ replaced (not pushed) to avoid blocking back navigation.
+
+```tsx
+const App = () => {
+  return (
+    <Route path={'/go-home'}>
+      <Redirect href="/" />
+    </Route>
+  );
+};
+```
+
+It also accepts an optional `state` property to set history state data.
+
+```tsx
+const App = () => {
+  return (
+    <Route path={'/go-home'}>
+      <Redirect href="/" state={{ key: 'value' }} />
+    </Route>
+  );
+};
+```
