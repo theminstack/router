@@ -55,14 +55,16 @@ const Routes = ({ children }: RoutesProps = {}): JSX.Element | null => {
 
   return (
     <>
-      {childArray.flatMap((child, i) => {
-        return index !== i || !isValidElement(child) ? (
-          child
-        ) : (
-          <RouteMatchContext.Provider key={child.key} value={routeMatch}>
-            {child.props.children}
-          </RouteMatchContext.Provider>
-        );
+      {childArray.flatMap((child, i): ReactNode => {
+        return isRoute(child)
+          ? i === index
+            ? [
+                <RouteMatchContext.Provider key={child.key} value={routeMatch}>
+                  {child.props.children}
+                </RouteMatchContext.Provider>,
+              ]
+            : []
+          : [child];
       })}
     </>
   );
