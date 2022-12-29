@@ -2,6 +2,9 @@
 
 Basic declarative routing for React.
 
+[![build](https://github.com/theminstack/router/actions/workflows/build.yml/badge.svg)](https://github.com/theminstack/router/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/theminstack/router/branch/main/graph/badge.svg?token=Y9CEQA8D4O)](https://codecov.io/gh/theminstack/router)
+
 The [MinStack](https://minstack.rocks) Philosophy:
 
 - **Simple:** Minimal and opinionated APIs and feature sets.
